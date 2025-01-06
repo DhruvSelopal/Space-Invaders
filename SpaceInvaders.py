@@ -1,6 +1,7 @@
 import pygame
 import random
 import math
+import time
 from pygame.locals import *
 from pygame import mixer
 
@@ -47,7 +48,7 @@ for i in range(num_of_enemies):
     enemyImg.append(pygame.image.load('alien.png'))
     enemyX.append(random.randint(30, 750))
     enemyY.append(random.randint(50, 150))
-    enemyX_change.append(0.5)
+    enemyX_change.append(0.3)
     enemyY_change.append(40)
 
 # Bullet coordinates
@@ -58,12 +59,14 @@ bulletImg = pygame.image.load("bullet.png")
 bulletX = 0
 bulletY = 480
 bulletX_change = 0
-bulletY_change = 0.8
+bulletY_change = 5
 bullet_state = "ready"
 
 # score
 
 score_value = 0
+topScore = 0
+scoreAdded = False
 font = pygame.font.Font('freesansbold.ttf', 32)
 
 textX = 10
@@ -78,8 +81,12 @@ over_font = pygame.font.Font('freesansbold.ttf', 64)
 play_font = pygame.font.Font('freesansbold.ttf', 48)
 
 
-def showscore(x, y):
-    score = font.render("Score: " + str(score_value), True, (255, 255, 255))
+def showscore(x, y,val):
+    score = font.render("Score: " + str(val), True, (255, 255, 255))
+    screen.blit(score, (x, y))
+
+def showTopScore(x, y,val):
+    score = font.render("Top Score: " + str(val), True, (255, 255, 255))
     screen.blit(score, (x, y))
 
 
@@ -92,6 +99,7 @@ def game_over_text():
 def play_again_text():
     play_text = play_font.render("Press any key to play again ", True, (255, 255, 255))
     screen.blit(play_text, (100, 320))
+
 
 
 def fire_bullet(x, y):
@@ -126,9 +134,9 @@ while running:
         # if keystroke is pressed
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
-                playerX_change = -0.7
+                playerX_change = -0.5
             if event.key == pygame.K_RIGHT:
-                playerX_change = 0.7
+                playerX_change = 0.5
             if event.key == pygame.K_SPACE and bullet_state == "ready":  # In order to avoid changing location everytime
                 bullet_sound = mixer.Sound("laser.wav")
                 bullet_sound.play()
@@ -137,6 +145,7 @@ while running:
             if game_over:
                 if event.type == pygame.KEYDOWN:
                     score_value = 0
+                    scoreAdded = False
                     for i in range(num_of_enemies):
                         enemyX[i] = random.randint(20, 730)
                         enemyY[i] = random.randint(50, 150)
@@ -162,14 +171,16 @@ while running:
                 enemyY[j] = 2000
             game_over_text()
             play_again_text()
+            if score_value >  topScore:
+                topScore = score_value
             game_over = True
-            break
+
         enemyX[i] += enemyX_change[i]
         if enemyX[i] < 10:
-            enemyX_change[i] = 0.5
+            enemyX_change[i] = 1
             enemyY[i] += enemyY_change[i]
         elif enemyX[i] > 740:
-            enemyX_change[i] = -0.5
+            enemyX_change[i] = -1
             enemyY[i] += enemyY_change[i]
 
         # Collision
@@ -193,6 +204,9 @@ while running:
         bulletY = 480
         bullet_state = "ready"
 
+    yCo = 10
+
     player(playerX, playerY)
-    showscore(textX, textY)
+    showscore(textX, textY,score_value)
+    showTopScore(550,10,topScore)
     pygame.display.update()
